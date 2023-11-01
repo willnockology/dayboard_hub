@@ -15,26 +15,41 @@ class User(AbstractUser):
         ('crew', 'Crew'),
     )
     user_type = models.CharField(max_length=20, choices=user_type_choices)
-    
-    # Define a ForeignKey to Company with a default value for superusers, yacht managers, and yacht admins
+
     company = models.ForeignKey(
-        Company, 
-        on_delete=models.SET_DEFAULT, 
-        default=1,  # Assuming "Dayboard" has an ID of 1
+        'Company',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=1,  # Make sure this default value exists in your Company model
     )
 
-    yacht = models.ForeignKey('Yacht', on_delete=models.SET_NULL, null=True, blank=True)
+    yacht = models.ForeignKey(
+        'Yacht',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
     groups = models.ManyToManyField(Group, blank=True, related_name="custom_user_set")
     users_permissions = models.ManyToManyField(Permission, blank=True, related_name="custom_user_set")
     uploaded_file = models.FileField(upload_to='files', null=True, blank=True)
     uploaded_image = models.ImageField(upload_to='images', null=True, blank=True)
 
 class Yacht(models.Model):
-    name = models.CharField(max_length=255)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
+    name = models.CharField(max_length=100)
+    length = models.FloatField(null=True, blank=True)
+    width = models.FloatField(null=True, blank=True)
+    draft = models.FloatField(null=True, blank=True)
+    year_built = models.FloatField(null=True, blank=True)
+    description = models.TextField(default="")  # Add a default value
+    company = models.CharField(max_length=100)  # Add this line
+    created_at = models.DateTimeField(auto_now_add=True)  # Add this line
+    updated_at = models.DateTimeField(auto_now=True)  # Add this line
+    
+    def __str__(self):
+        return self.name
+    
 class Category(models.Model):
     name = models.CharField(max_length=255)
     yacht = models.ForeignKey(Yacht, on_delete=models.CASCADE)
@@ -63,7 +78,7 @@ class FormField(models.Model):
 class Comment(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -74,6 +89,6 @@ class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     status = models.CharField(max_length=255)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
